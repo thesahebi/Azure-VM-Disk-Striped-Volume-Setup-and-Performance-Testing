@@ -71,3 +71,7 @@ New-Partition -DiskNumber $disk.Number -UseMaximumSize -DriveLetter D | Format-V
 # 5. Verify
 Get-VirtualDisk | Format-Table FriendlyName, ResiliencySettingName, Size, NumberOfColumns
 Get-PhysicalDisk | Format-Table FriendlyName, OperationalStatus, CanPool, Size
+
+##2 PowerShell *(recommended for reproducibility)*
+
+
