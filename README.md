@@ -73,5 +73,8 @@ Get-VirtualDisk | Format-Table FriendlyName, ResiliencySettingName, Size, Number
 Get-PhysicalDisk | Format-Table FriendlyName, OperationalStatus, CanPool, Size
 
 ##2 PowerShell *(recommended for reproducibility)*
+DiskSpd is a Microsoft I/O testing tool. Place DiskSpd.exe in a folder on the VM and run commands from that folder (PowerShell as Admin). Use -c<size> to create the test file if it doesn't exist****
+
+###2.1 Sequential Write (5 minutes)
 
 
