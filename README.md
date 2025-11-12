@@ -83,26 +83,7 @@ Duration: 300s (5 min)
 Threads: 4
 Workload: 100% write (sequential)
 
-Measured (Sequential Write)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Measured (Sequential Write)```
 
 
 MetricValueTotal throughput~763 MB/sTotal IOPS~12,212Balance~190–192 MB/s per thread (even distribution)
@@ -117,29 +98,6 @@ Outstanding IOs per thread: 8
 Random I/O, 50% read / 50% write
 
 Measured (Random 4KB Mixed)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 MetricMB/sIOPSRead19.044,875Write19.054,876Total38.099,751
