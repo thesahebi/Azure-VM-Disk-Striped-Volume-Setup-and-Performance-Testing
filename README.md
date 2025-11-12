@@ -30,17 +30,17 @@ New-VirtualDisk -StoragePoolFriendlyName "StripePool" -FriendlyName "Disk-Strip-
 
 # Initialize, create partition, and format
 Initialize-Disk -VirtualDisk (Get-VirtualDisk -FriendlyName "Disk-Strip-Demo") -PartitionStyle GPT
-New-Partition -DiskNumber <diskNumber> -UseMaximumSize -DriveLetter D | Format-Volume -FileSystem NTFS -NewFileSystemLabel "D_Stripe"
+New-Partition -DiskNumber <diskNumber> -UseMaximumSize -DriveLetter D | Format-Volume -FileSystem NTFS -NewFileSystemLabel "D_Stripe"```
 
 ##Step 2: Create a Storage Pool
-New-StoragePool -FriendlyName "StripePool" -StorageSubsystemFriendlyName "Storage Spaces*" -PhysicalDisks (Get-PhysicalDisk -CanPool $True)
+```New-StoragePool -FriendlyName "StripePool" -StorageSubsystemFriendlyName "Storage Spaces*" -PhysicalDisks (Get-PhysicalDisk -CanPool $True)```
 
 ##Step 3: Create Striped Virtual Disk
-New-VirtualDisk -StoragePoolFriendlyName "StripePool" -FriendlyName "Disk-Strip-Demo" -Size 256GB -ResiliencySettingName Simple -NumberOfColumns 4
+```New-VirtualDisk -StoragePoolFriendlyName "StripePool" -FriendlyName "Disk-Strip-Demo" -Size 256GB -ResiliencySettingName Simple -NumberOfColumns 4```
 
 ##Step 4: Initialize and Format the Disk
-Initialize-Disk -VirtualDisk (Get-VirtualDisk -FriendlyName "Disk-Strip-Demo") -PartitionStyle GPT
-New-Partition -DiskNumber <diskNumber> -UseMaximumSize -DriveLetter D | Format-Volume -FileSystem NTFS -NewFileSystemLabel "D_Stripe"
+```Initialize-Disk -VirtualDisk (Get-VirtualDisk -FriendlyName "Disk-Strip-Demo") -PartitionStyle GPT
+New-Partition -DiskNumber <diskNumber> -UseMaximumSize -DriveLetter D | Format-Volume -FileSystem NTFS -NewFileSystemLabel "D_Stripe"```
 
 Tip: "Simple" layout = no redundancy. For critical data, consider a mirrored stripe (RAID 10 equivalent) to survive disk failures.
 
@@ -49,7 +49,7 @@ Tip: "Simple" layout = no redundancy. For critical data, consider a mirrored str
 We used DiskSpd to test sequential and random I/O performance.
 
 Sequential Write Test
-.\diskspd.exe -b64K -d300 -o4 -t4 -w100 -c10G D:\load.dat
+```.\diskspd.exe -b64K -d300 -o4 -t4 -w100 -c10G D:\load.dat```
 
 
 Block size: 64 KB
