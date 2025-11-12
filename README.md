@@ -90,14 +90,16 @@ Initialize-Disk -Number $disk.Number -PartitionStyle GPT
 New-Partition -DiskNumber $disk.Number -UseMaximumSize -DriveLetter D | 
     Format-Volume -FileSystem NTFS -NewFileSystemLabel "D_Stripe" -Confirm:$false
 ```
-2 — Performance Testing (DiskSpd)
+##2 — Performance Testing (DiskSpd)
 DiskSpd is Microsoft’s command-line I/O workload generator.
 Download: DiskSpd on GitHub
 Place DiskSpd.exe in a folder (e.g., C:\Tools) and run PowerShell as Admin from there.
 Use -c<size> to create test file if it doesn’t exist.
 
 2.1 Sequential Write (5 Minutes)
-```powershell powershell.\diskspd.exe -b64K -d300 -o4 -t4 -w100 -c10G D:\load.dat ```
+```powershell 
+powershell.\diskspd.exe -b64K -d300 -o4 -t4 -w100 -c10G D:\load.dat
+```
 
 ParameterValueBlock size64KDuration300s (5 min)Outstanding I/O per thread4Threads4Workload100% write, sequential
 Measured Results (Sequential Write)
@@ -105,7 +107,9 @@ Measured Results (Sequential Write)
 MetricValueTotal Throughput~763 MB/sTotal IOPS~12,212Per-thread balance~190–192 MB/s (evenly distributed)
 
 2.2 Random 4KB Mixed (50% Read / 50% Write) – 5 Minutes
-```powershell powershell.\diskspd.exe -b4K -d300 -o8 -t8 -w50 -r -c10G D:\load.dat ```
+```powershell 
+powershell.\diskspd.exe -b4K -d300 -o8 -t8 -w50 -r -c10G D:\load.dat
+```
 
 ParameterValueBlock size4KDuration300sOutstanding I/O per thread8Threads8Workload50% read / 50% write, random
 Measured Results (Random 4KB Mixed)
@@ -114,77 +118,16 @@ MetricMB/sIOPSRead19.044,875Write19.054,876Total38.099,751
 Strong aggregated IOPS — nearly 4× single disk performance.
 
 Cleanup
-```powershell powershellRemove-Item D:\load.dat -Force ```
+```powershell 
+powershellRemove-Item D:\load.dat -Force
+```
 
-3 — Interpretation & Key Notes
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+##3 — Interpretation & Key Notes
 
 ObservationExplanationAggregation4 disks × 240 IOPS = ~960 theoretical IOPS → measured 9,751 due to burst, caching, and test parametersSequential vs RandomSequential = bandwidth-bound (~763 MB/s)
 Random = IOPS-bound (~9.7K IOPS)Even I/O distributionConfirmed by per-thread balance → correct NumberOfColumns = 4No redundancySimple layout → 1 disk failure = data loss
 
-4 — Data Protection Options
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+##4 — Data Protection Options
 
 StrategyDescriptionCapacityFault TolerancePerformanceStripe + Backups (Current)Daily Veeam backups100%None (restore from backup)MaxMirrored Stripe (RAID-10)Two-way mirror in Storage Spaces50%1 disk failureHighParityStorage Spaces parity~75%1–2 failuresSlower writesSnapshots + BackupsAzure or ReFS snapshots + Veeam100%Logical recoveryFast restore
 
@@ -204,3 +147,39 @@ Customize DiskSpd tests to match your app:
 Try 8K, 16K, 32K
 Vary -o (outstanding I/O) and -t (threads)
 
+##6 — Quick Reference Commands
+Create Stripe (PowerShell)
+```powershell
+New-StoragePool -FriendlyName "StripePool" `
+                -StorageSubsystemFriendlyName "Storage Spaces*" `
+                -PhysicalDisks (Get-PhysicalDisk -CanPool $True)
+
+New-VirtualDisk -StoragePoolFriendlyName "StripePool" `
+                -FriendlyName "Disk-Strip-Demo" `
+                -Size 256GB `
+                -ResiliencySettingName Simple `
+                -NumberOfColumns 4
+
+```
+##DiskSpd Tests
+```powershell
+# Sequential Write (5 min)
+.\diskspd.exe -b64K -d300 -o4 -t4 -w100 -c10G D:\load.dat
+
+# Random 4K Mixed (5 min)
+.\diskspd.exe -b4K -d300 -o8 -t8 -w50 -r -c10G D:\load.dat
+```
+##7 — Summary
+Item,Details
+Configuration,"4 × Premium SSD LRS (64 GiB), striped → ~256 GiB D:"
+Performance,"~763 MB/s sequential write
+~9,751 IOPS (4KB random mixed)"
+Data Protection,"Daily Veeam backups (current)
+→ Consider mirrored stripe for live redundancy"
+Recommendation,"Stripe for speed + backups for recovery
+OR Mirror for fault tolerance"
+
+##References
+Azure Premium Storage Performance
+DiskSpd Documentation
+Storage Spaces Overview
