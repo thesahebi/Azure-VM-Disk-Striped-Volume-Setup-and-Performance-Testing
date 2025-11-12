@@ -56,3 +56,74 @@ New-VirtualDisk -StoragePoolFriendlyName "StripePool" -FriendlyName "Disk-Strip-
 # Initialize, create partition, and format
 Initialize-Disk -VirtualDisk (Get-VirtualDisk -FriendlyName "Disk-Strip-Demo") -PartitionStyle GPT
 New-Partition -DiskNumber <diskNumber> -UseMaximumSize -DriveLetter D | Format-Volume -FileSystem NTFS -NewFileSystemLabel "D_Stripe"
+
+
+3. Performance Testing
+
+We used DiskSpd to test sequential and random I/O performance.
+
+Sequential Write Test
+.\diskspd.exe -b64K -d300 -o4 -t4 -w100 -c10G D:\load.dat
+
+
+Block size: 64 KB
+
+Duration: 5 minutes
+
+Threads: 4
+
+Sequential write only
+
+Results (Sequential Write):
+
+Total throughput: ~763 MB/s
+
+Total IOPS: ~12,212
+
+Random 4 KB Mixed Read/Write Test
+.\diskspd.exe -b4K -d300 -o8 -t8 -w50 -r -c10G D:\load.dat
+
+
+Block size: 4 KB
+
+Read/Write ratio: 50/50
+
+Random I/O
+
+Threads: 8
+
+Results (Random 4 KB Read/Write):
+
+Metric	MB/s	IOPS
+Read	19.04	4,875
+Write	19.05	4,876
+Total	38.09	9,751
+
+Excellent sequential throughput and strong random IOPS for a 4-disk striped setup.
+
+4. Recommendations
+
+Backup Strategy: Daily Veeam backups cover data loss risk for striped volume.
+
+High Availability: For critical workloads, use a mirrored stripe (RAID 10) to survive single disk failure.
+
+Monitoring: Track disk health, I/O queue length, and VM metrics in Azure.
+
+Workload Testing: Test with different block sizes (8 KB, 16 KB) to simulate real-world applications.
+
+5. Summary
+
+Configuration: 4 × Premium SSDs, 256 GiB, striped (simple)
+
+Performance: ~763 MB/s sequential, ~9,751 random 4 KB IOPS
+
+Data Protection: Daily Veeam backups, optional mirrored stripe for fault tolerance
+
+Use Case: High-performance workloads where throughput and IOPS are critical and backups provide protection
+
+References
+
+Azure Premium Storage Performance
+
+DiskSpd Tool
+
