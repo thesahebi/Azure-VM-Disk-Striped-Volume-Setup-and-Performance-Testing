@@ -27,17 +27,12 @@ If you attach just one of those disks, your VM can only use that disk’s limits
 But Azure lets you attach multiple disks.
 And each disk has its own independent performance budget.
 
-This is where striping comes in.
-
-What Disk Striping Actually Does
+### This is where striping comes in.
+### What Disk Striping Actually Does
 
 Striping means:
 
-You take multiple physical disks
-
-Combine them into one virtual volume
-
-And data is written across all disks in parallel
+**You take multiple physical disks Combine them into one virtual volume And data is written across all disks in parallel**
 
 Think of it like:
 
