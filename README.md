@@ -5,7 +5,8 @@ Azure Disk Striped Volume Setup and Performance Testing
 ### Disk Striping (Introduction)
 
 When a high-scale VM is attached with several **Premium Storage persistent disks**, the disks can be **striped together** to aggregate their **IOPS**, **bandwidth**, and **storage capacity**.
-Why Striping Disks in Azure Gives You More IOPS and Throughput (And why your numbers beat the VM’s "max")
+
+**Why Striping Disks in Azure Gives You More IOPS and Throughput (And why your numbers beat the VM’s "max")**
 
 When you attach a single Premium SSD to an Azure VM, that disk has its own limits:
 
