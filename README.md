@@ -1,5 +1,5 @@
-# Azure VM 4-Disk Striped Volume Setup and Performance Testing
-
+# Azure IOPS & Throughput Hack: Beating VM Disk Limits with Striping
+Azure Disk Striped Volume Setup and Performance Testing
 ---
 
 ## Disk Striping (Introduction)
@@ -23,6 +23,7 @@ This **README** provides a complete, step-by-step guide to:
 1. Create a **high-performance 4-disk striped volume (D:)** on a **Windows Azure VM** using **Storage Spaces**
 2. Test performance using **DiskSpd**
 3. Summarize measured results and best practices
+4. IOPS cheatcode.
 
 **Example configuration:**  
 **4 × Premium SSD LRS, 64 GiB each**
@@ -42,8 +43,17 @@ This **README** provides a complete, step-by-step guide to:
 ---
 
 ## 1 — Create the Striped Volume
+### Add disk to your azure VM
+1. Add 4 disk of Premium SSD LRS to your exisitng VM
 
-### Option A — GUI (Server Manager)
+| LUN | Disk Name | Storage Type       | Size (GiB) | Max IOPS | Max Throughput (MBps) | Encryption     | Host Caching |
+|-----|-----------|--------------------|------------|----------|-------------------------|----------------|--------------|
+| 1   | Disk02    | Premium SSD LRS    | 64         | 240      | 50                      | SSE with PMK   | Read/Write   |
+| 2   | Disk03    | Premium SSD LRS    | 64         | 240      | 50                      | SSE with PMK   | Read/Write   |
+| 3   | Disk04    | Premium SSD LRS    | 64         | 240      | 50                      | SSE with PMK   | Read/Write   |
+| 0   | Disk05    | Premium SSD LRS    | 64         | 240      | 50                      | SSE with PMK   | Read/Write   |
+
+### Create a drive using added disk in windows VM
 
 1. Open **Server Manager** → **File and Storage Services** → **Storage Pools**
 2. Click **New Storage Pool**
@@ -62,27 +72,6 @@ This **README** provides a complete, step-by-step guide to:
 > **Tip:** `Simple` layout = **no redundancy**. For fault tolerance, use **Mirror** instead.
 
 ---
-
-### Option B — PowerShell *(Recommended for Reproducibility)*
-
-Run as **Administrator**:
-
-```powershell
-# 1. Verify available physical disks
-Get-PhysicalDisk | Sort-Object FriendlyName | Format-Table FriendlyName, OperationalStatus, MediaType, Size
-
-# 2. Create storage pool (uses all eligible disks)
-New-StoragePool -FriendlyName "StripePool" `
-                -StorageSubsystemFriendlyName "Storage Spaces*" `
-                -PhysicalDisks (Get-PhysicalDisk -CanPool $True)
-
-# 3. Create striped virtual disk (Simple = stripe), 4 columns
-New-VirtualDisk -StoragePoolFriendlyName "StripePool" `
-                -FriendlyName "Disk-Strip-Demo" `
-                -Size 256GB `
-                -ResiliencySettingName Simple `
-                -NumberOfColumns 4
-```
 # 5. Verify configuration
 ```powershell
 Get-VirtualDisk | Format-Table FriendlyName, ResiliencySettingName, Size, NumberOfColumns
@@ -111,6 +100,7 @@ Measured Results (Sequential Write)
 | **IOPS** | ~12,212Per-thread  |
 | **balance** | ~190–192 MB/s (evenly distributed) |
 
+ 
 
 ### 2.2 Random 4KB Mixed (50% Read / 50% Write) – 5 Minutes
 ```powershell
