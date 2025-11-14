@@ -90,12 +90,17 @@ Azure disks have deeper throughput burst behavior and caching layers, and stripi
 
 You essentially "cheated" Azure’s single-disk limits by using a legal, supported method:
 
-✔ Combined IOPS of all 4 disks
-✔ Combined throughput of all 4 disks
-✔ A single large fast volume (D:)
-✔ Better performance than a larger single-tier disk
-✔ Without paying for bigger Premium SSD tiers
-✔ Fully supported by Microsoft
+--✔ Combined IOPS of all 4 disks
+
+--✔ Combined throughput of all 4 disks
+
+--✔ A single large fast volume (D:)
+
+--✔ Better performance than a larger single-tier disk
+
+--✔ Without paying for bigger Premium SSD tiers
+
+--✔ Fully supported by Microsoft
 
 ### Why Azure Allows This 
 
