@@ -69,7 +69,7 @@ DiskSpd uses queue depth + multi-threading
 
 Data spreads across all disks evenly (good column count)
 
-👉 Result: you achieved far above the raw disk spec, because the VM had unused headroom.
+**Result**: you achieved far above the raw disk spec, because the VM had unused headroom.
 ### Also: Sequential striping always boosts throughput massively
 Azure Premium SSDs perform better under:
 
@@ -158,7 +158,7 @@ This **README** provides a complete, step-by-step guide to:
 
 ---
 
-## 1 — Create the Striped Volume
+## 1- Create the Striped Volume
 ### Add disk to your azure VM
 1. Add 4 disk of Premium SSD LRS to your exisitng VM
 
