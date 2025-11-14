@@ -82,18 +82,20 @@ New-VirtualDisk -StoragePoolFriendlyName "StripePool" `
                 -Size 256GB `
                 -ResiliencySettingName Simple `
                 -NumberOfColumns 4
-
+```
 # 4. Initialize and format the virtual disk
+```powershell
 $vd = Get-VirtualDisk -FriendlyName "Disk-Strip-Demo"
 $disk = $vd | Get-Disk
 Initialize-Disk -Number $disk.Number -PartitionStyle GPT
 New-Partition -DiskNumber $disk.Number -UseMaximumSize -DriveLetter D | 
     Format-Volume -FileSystem NTFS -NewFileSystemLabel "D_Stripe" -Confirm:$false
-
+```
 # 5. Verify configuration
+```powershell
 Get-VirtualDisk | Format-Table FriendlyName, ResiliencySettingName, Size, NumberOfColumns
 Get-PhysicalDisk | Format-Table FriendlyName, OperationalStatus, CanPool, Size
-
+```
 2 — Performance Testing (DiskSpd)
 DiskSpd is Microsoft’s command-line I/O workload generator.
 Download: DiskSpd on GitHub
@@ -102,34 +104,6 @@ Use -c<size> to create test file if it doesn’t exist.
 
 2.1 Sequential Write (5 Minutes)
 powershell.\diskspd.exe -b64K -d300 -o4 -t4 -w100 -c10G D:\load.dat
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ParameterValueBlock size64KDuration300s (5 min)Outstanding I/O per thread4Threads4Workload100% write, sequential
 Measured Results (Sequential Write)
