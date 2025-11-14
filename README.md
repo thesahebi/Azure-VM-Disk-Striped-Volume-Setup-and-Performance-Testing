@@ -104,9 +104,13 @@ Measured Results (Sequential Write)
 ```
 ### Result:
 #### MetricValueTotal 
-**Throughput** ~763 MB/sTotal 
-**IOPS**~12,212Per-thread 
-**balance** ~190–192 MB/s (evenly distributed)
+
+| Item | Specification |
+|------|---------------|
+| **Throughput** | ~763 MB/sTotal  |
+| **IOPS** | ~12,212Per-thread  |
+| **balance** | ~190–192 MB/s (evenly distributed) |
+
 
 ### 2.2 Random 4KB Mixed (50% Read / 50% Write) – 5 Minutes
 ```powershell
