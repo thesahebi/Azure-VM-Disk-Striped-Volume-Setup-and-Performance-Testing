@@ -111,19 +111,19 @@ They want you to scale out using multiple small disks.
 
 That’s why striping is supported in:
 
-SQL Server
+-- SQL Server
 
-Veeam proxy servers
+-- Veeam proxy servers
 
-Elasticsearch clusters
+-- Elasticsearch clusters
 
-Backup repositories
+-- Backup repositories
 
-TempDB volumes
+-- TempDB volumes
 
-Cache servers
+-- Cache servers
 
-Log volumes
+-- Log volumes
 
 Microsoft documents the behavior:
 
