@@ -169,7 +169,7 @@ This **README** provides a complete, step-by-step guide to:
 | 3   | Disk04    | Premium SSD LRS    | 64         | 240      | 50                      | SSE with PMK   | Read/Write   |
 | 0   | Disk05    | Premium SSD LRS    | 64         | 240      | 50                      | SSE with PMK   | Read/Write   |
 
-### Create a drive using added disk in windows VM
+### 1.1- Create a drive using added disk in windows VM
 
 1. Open **Server Manager** → **File and Storage Services** → **Storage Pools**
 2. Click **New Storage Pool**
@@ -188,12 +188,12 @@ This **README** provides a complete, step-by-step guide to:
 > **Tip:** `Simple` layout = **no redundancy**. For fault tolerance, use **Mirror** instead.
 
 ---
-# 5. Verify configuration
+# 1.2- Verify configuration
 ```powershell
 Get-VirtualDisk | Format-Table FriendlyName, ResiliencySettingName, Size, NumberOfColumns
 Get-PhysicalDisk | Format-Table FriendlyName, OperationalStatus, CanPool, Size
 ```
-## Performance Testing (DiskSpd)
+## 2 - Performance Testing (DiskSpd)
 DiskSpd is Microsoft’s command-line I/O workload generator.
 Download: DiskSpd on GitHub
 Place DiskSpd.exe in a folder (e.g., C:\Tools) and run PowerShell as Admin from there.
@@ -233,7 +233,7 @@ Cleanup
 ```powershell
 powershellRemove-Item D:\load.dat -Force
 ```
-### 3 — Interpretation & Key Notes
+### 3— Interpretation & Key Notes
 
 - **Aggregation**  
   · 4 disks × 240 IOPS = ~960 theoretical IOPS  
@@ -249,7 +249,7 @@ powershellRemove-Item D:\load.dat -Force
 - **No Redundancy**  
   · Simple layout → 1 disk failure = data loss
 
-### 5 — Recommendations
+### 4— Recommendations
 
 **Performance Priority?**
 → Keep Simple stripe + daily Veeam backups
@@ -267,7 +267,7 @@ Vary -o (outstanding I/O) and -t (threads)
 
 
 
-6 — Quick Reference Commands
+### 5- Quick Reference Commands
 Create Stripe (PowerShell)
 ```powershell
 powershellNew-StoragePool -FriendlyName "StripePool" `
@@ -290,7 +290,7 @@ powershell# Sequential Write (5 min)
 ```powershell
 .\diskspd.exe -b4K -d300 -o8 -t8 -w50 -r -c10G D:\load.dat
 ```
-7 — Summary
+### 6- Summary
 
 ItemDetailsConfiguration4 × Premium SSD LRS (64 GiB), 
 -- striped → ~256 GiB D:
