@@ -1,185 +1,148 @@
-# Azure VM 4-Disk Striped Volume Setup and Performance Testing
+Azure VM 4‑Disk Striped Volume Setup and Performance Testing
+Introduction: Disk Striping
 
----
+When an Azure VM attaches multiple Premium Storage disks, they can be striped to combine IOPS, bandwidth, and capacity.
 
-## Disk Striping (Introduction)
+Windows: Uses Storage Spaces with one column per disk.
 
-When a high-scale VM is attached with several **Premium Storage persistent disks**, the disks can be **striped together** to aggregate their **IOPS**, **bandwidth**, and **storage capacity**.
+Linux: Uses mdadm for RAID/striping.
 
-- **Windows:** Use **Storage Spaces** to stripe disks. Configure **one column per physical disk** to ensure even distribution of I/O across disks.  
-  - Server Manager UI supports up to **8 columns**  
-  - For more disks, use **PowerShell** and set `NumberOfColumns` equal to the number of disks.
+Overview
 
-- **Linux:** Use the **`mdadm`** utility to build RAID/stripe sets.
+This document guides you through:
 
-> **Reference:** [Azure Premium Storage Performance](https://learn.microsoft.com/en-us/azure/virtual-machines/premium-storage-performance)
+Creating a 4‑disk striped volume (D:) on Windows using Storage Spaces
 
----
+Running DiskSpd performance tests
 
-## Overview
+Reviewing results and recommendations
 
-This **README** provides a complete, step-by-step guide to:
+Example configuration: 4 × Premium SSD LRS (64 GiB each)
 
-1. Create a **high-performance 4-disk striped volume (D:)** on a **Windows Azure VM** using **Storage Spaces**
-2. Test performance using **DiskSpd**
-3. Summarize measured results and best practices
+Environment
+Item	Specification
+VM	Windows Server on Azure
+Disks	4 × Premium SSD LRS (64 GiB)
+Max IOPS per Disk	240
+Max Throughput per Disk	50 MB/s
+Target Volume	~256 GiB striped (Simple)
+1 — Create the Striped Volume
+Option A — Server Manager (GUI)
 
-**Example configuration:**  
-**4 × Premium SSD LRS, 64 GiB each**
+Open Server Manager → File and Storage Services → Storage Pools.
 
----
+Create a new storage pool using all 4 disks.
 
-## Environment
+Create a new virtual disk:
 
-| Item | Specification |
-|------|---------------|
-| **VM** | Windows Server (Azure) |
-| **Disks Attached** | 4 × Premium SSD LRS, 64 GiB each |
-| **Max IOPS per Disk** | 240 |
-| **Max Throughput per Disk** | 50 MB/s |
-| **Target Volume (Striped D:)** | ~256 GiB usable (Simple/Striped) |
+Layout: Simple (striped)
 
----
+Provisioning: Fixed
 
-## 1 — Create the Striped Volume
+Columns: 4
 
-### Option A — GUI (Server Manager)
+Initialize disk (GPT) and create a new partition.
 
-1. Open **Server Manager** → **File and Storage Services** → **Storage Pools**
-2. Click **New Storage Pool**
-   - Select all **4 available disks**
-   - Name: `StripePool`
-3. After pool creation → **Tasks** → **New Virtual Disk**
-   - **Storage Pool:** `StripePool`
-   - **Layout:** `Simple (No resiliency)` *(this is striping)*
-   - **Provisioning:** `Fixed` *(recommended for performance)*
-   - **Enclosure awareness:** Enable only if disks are in separate enclosures
-   - **Number of columns:** `4` *(one per disk)*
-4. Create the virtual disk → **Initialize** → **GPT**
-5. **New Partition** → Assign drive letter **D:**
-6. **Format** → `NTFS` (or `ReFS`) → Label: `D_Stripe`
+Assign drive letter D: and format (NTFS or ReFS).
 
-> **Tip:** `Simple` layout = **no redundancy**. For fault tolerance, use **Mirror** instead.
-
----
-
-### Option B — PowerShell *(Recommended for Reproducibility)*
-
-Run as **Administrator**:
-
-```powershell
-# 1. Verify available physical disks
+Option B — PowerShell
 Get-PhysicalDisk | Sort-Object FriendlyName | Format-Table FriendlyName, OperationalStatus, MediaType, Size
 
-# 2. Create storage pool (uses all eligible disks)
+
 New-StoragePool -FriendlyName "StripePool" `
                 -StorageSubsystemFriendlyName "Storage Spaces*" `
                 -PhysicalDisks (Get-PhysicalDisk -CanPool $True)
 
-# 3. Create striped virtual disk (Simple = stripe), 4 columns
+
 New-VirtualDisk -StoragePoolFriendlyName "StripePool" `
                 -FriendlyName "Disk-Strip-Demo" `
                 -Size 256GB `
                 -ResiliencySettingName Simple `
                 -NumberOfColumns 4
 
-# 4. Initialize and format the virtual disk
+
 $vd = Get-VirtualDisk -FriendlyName "Disk-Strip-Demo"
 $disk = $vd | Get-Disk
 Initialize-Disk -Number $disk.Number -PartitionStyle GPT
-New-Partition -DiskNumber $disk.Number -UseMaximumSize -DriveLetter D | 
+New-Partition -DiskNumber $disk.Number -UseMaximumSize -DriveLetter D |
     Format-Volume -FileSystem NTFS -NewFileSystemLabel "D_Stripe" -Confirm:$false
-```
-##2 — Performance Testing (DiskSpd)
-DiskSpd is Microsoft’s command-line I/O workload generator.
-Download: DiskSpd on GitHub
-Place DiskSpd.exe in a folder (e.g., C:\Tools) and run PowerShell as Admin from there.
-Use -c<size> to create test file if it doesn’t exist.
+2 — Performance Testing with DiskSpd
 
-2.1 Sequential Write (5 Minutes)
-```powershell 
-powershell.\diskspd.exe -b64K -d300 -o4 -t4 -w100 -c10G D:\load.dat
-```
+Place diskspd.exe in a tools folder and run from PowerShell.
 
-ParameterValueBlock size64KDuration300s (5 min)Outstanding I/O per thread4Threads4Workload100% write, sequential
-Measured Results (Sequential Write)
+2.1 Sequential Write (5 minutes)
+.\u200bdiskspd.exe -b64K -d300 -o4 -t4 -w100 -c10G D:\load.dat
 
-MetricValueTotal Throughput~763 MB/sTotal IOPS~12,212Per-thread balance~190–192 MB/s (evenly distributed)
+Results:
 
-2.2 Random 4KB Mixed (50% Read / 50% Write) – 5 Minutes
-```powershell 
-powershell.\diskspd.exe -b4K -d300 -o8 -t8 -w50 -r -c10G D:\load.dat
-```
+Throughput: ~763 MB/s
 
-ParameterValueBlock size4KDuration300sOutstanding I/O per thread8Threads8Workload50% read / 50% write, random
-Measured Results (Random 4KB Mixed)
+IOPS: ~12,212
 
-MetricMB/sIOPSRead19.044,875Write19.054,876Total38.099,751
-Strong aggregated IOPS — nearly 4× single disk performance.
+Even thread distribution
 
+2.2 Random 4KB Mixed (50/50) – 5 minutes
+.\u200bdiskspd.exe -b4K -d300 -o8 -t8 -w50 -r -c10G D:\load.dat
+
+Results:
+
+Type	MB/s	IOPS
+Read	19.04	4,875
+Write	19.05	4,876
+Total	38.09	9,751
 Cleanup
-```powershell 
-powershellRemove-Item D:\load.dat -Force
-```
+Remove-Item D:\load.dat -Force
+3 — Interpretation & Notes
 
-##3 — Interpretation & Key Notes
+4 disks × 240 IOPS = ~960 theoretical → measured ~9,700 due to caching and bursting.
 
-ObservationExplanationAggregation4 disks × 240 IOPS = ~960 theoretical IOPS → measured 9,751 due to burst, caching, and test parametersSequential vs RandomSequential = bandwidth-bound (~763 MB/s)
-Random = IOPS-bound (~9.7K IOPS)Even I/O distributionConfirmed by per-thread balance → correct NumberOfColumns = 4No redundancySimple layout → 1 disk failure = data loss
+Sequential tests hit bandwidth limits; random tests hit IOPS limits.
 
-##4 — Data Protection Options
+Using NumberOfColumns = 4 ensures even distribution.
 
-StrategyDescriptionCapacityFault TolerancePerformanceStripe + Backups (Current)Daily Veeam backups100%None (restore from backup)MaxMirrored Stripe (RAID-10)Two-way mirror in Storage Spaces50%1 disk failureHighParityStorage Spaces parity~75%1–2 failuresSlower writesSnapshots + BackupsAzure or ReFS snapshots + Veeam100%Logical recoveryFast restore
+Simple layout = no redundancy (1 disk failure → data loss).
 
+4 — Data Protection Options
+Strategy	Description	Capacity	Fault Tolerance	Performance
+Stripe + Backups	Fastest, rely on Veeam	100%	None	Maximum
+Mirrored Stripe	RAID‑10 style	50%	1 disk failure	High
+Parity	Space‑efficient	~75%	1–2 failures	Slower writes
+Snapshots + Backups	Fast restore	100%	Logical protection	Fast
 5 — Recommendations
 
-Performance Priority?
-→ Keep Simple stripe + daily Veeam backups
-High Availability Required?
-→ Use two-way mirror instead of Simple
-Test Veeam Restores regularly (RPO/RTO validation)
-Monitor in Azure Portal:
-Disk IOPS / Throughput
-VM CPU, I/O queue length
-Set alerts for warnings
+If performance is the priority → use Simple stripe with reliable daily backups.
 
-Customize DiskSpd tests to match your app:
-Try 8K, 16K, 32K
-Vary -o (outstanding I/O) and -t (threads)
+If uptime matters → use mirrored stripe.
 
-##6 — Quick Reference Commands
-Create Stripe (PowerShell)
-```powershell
+Monitor: IOPS, throughput, queue depth, CPU.
+
+Customize DiskSpd for your workload (block size, thread count, queue depth).
+
+6 — Quick Reference Commands
+Create Stripe
 New-StoragePool -FriendlyName "StripePool" `
                 -StorageSubsystemFriendlyName "Storage Spaces*" `
                 -PhysicalDisks (Get-PhysicalDisk -CanPool $True)
+
 
 New-VirtualDisk -StoragePoolFriendlyName "StripePool" `
                 -FriendlyName "Disk-Strip-Demo" `
                 -Size 256GB `
                 -ResiliencySettingName Simple `
                 -NumberOfColumns 4
+DiskSpd Tests
+.\u200bdiskspd.exe -b64K -d300 -o4 -t4 -w100 -c10G D:\load.dat
+.\u200bdiskspd.exe -b4K -d300 -o8 -t8 -w50 -r -c10G D:\load.dat
+7 — Summary
+Item	Details
+Configuration	4 × Premium SSD LRS (striped) → ~256 GiB
+Performance	~763 MB/s sequential, ~9,751 IOPS random
+Protection	Daily backups (or mirror for redundancy)
+Recommendation	Stripe for speed + backup for recovery
+References
 
-```
-##DiskSpd Tests
-```powershell
-# Sequential Write (5 min)
-.\diskspd.exe -b64K -d300 -o4 -t4 -w100 -c10G D:\load.dat
-
-# Random 4K Mixed (5 min)
-.\diskspd.exe -b4K -d300 -o8 -t8 -w50 -r -c10G D:\load.dat
-```
-##7 — Summary
-Item,Details
-Configuration,"4 × Premium SSD LRS (64 GiB), striped → ~256 GiB D:"
-Performance,"~763 MB/s sequential write
-~9,751 IOPS (4KB random mixed)"
-Data Protection,"Daily Veeam backups (current)
-→ Consider mirrored stripe for live redundancy"
-Recommendation,"Stripe for speed + backups for recovery
-OR Mirror for fault tolerance"
-
-##References
 Azure Premium Storage Performance
+
 DiskSpd Documentation
+
 Storage Spaces Overview
