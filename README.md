@@ -1,22 +1,131 @@
 # Azure IOPS & Throughput Hack: Beating VM Disk Limits with Striping
 Azure Disk Striped Volume Setup and Performance Testing
 ---
-
-## Disk Striping (Introduction)
+## Overview
+### Disk Striping (Introduction)
 
 When a high-scale VM is attached with several **Premium Storage persistent disks**, the disks can be **striped together** to aggregate their **IOPS**, **bandwidth**, and **storage capacity**.
+Why Striping Disks in Azure Gives You More IOPS and Throughput (And why your numbers beat the VM’s "max")
 
-- **Windows:** Use **Storage Spaces** to stripe disks. Configure **one column per physical disk** to ensure even distribution of I/O across disks.  
-  - Server Manager UI supports up to **8 columns**  
-  - For more disks, use **PowerShell** and set `NumberOfColumns` equal to the number of disks.
+When you attach a single Premium SSD to an Azure VM, that disk has its own limits:
 
-- **Linux:** Use the **`mdadm`** utility to build RAID/stripe sets.
+**IOPS per disk**
+**Throughput per disk**
+**Size per disk**
+
+For example, each of your disks had:
+**240 IOPS max**
+**50 MB/s throughput max**
+
+If you attach just one of those disks, your VM can only use that disk’s limits.
+
+But Azure lets you attach multiple disks.
+And each disk has its own independent performance budget.
+
+This is where striping comes in.
+
+What Disk Striping Actually Does
+
+Striping means:
+
+You take multiple physical disks
+
+Combine them into one virtual volume
+
+And data is written across all disks in parallel
+
+Think of it like:
+
+Instead of 1 worker carrying all the load, you now have 4 workers lifting at the same time.
+
+So:
+
+Item	Single Disk	4-Disk Stripe	What You See
+IOPS	240	240 × 4 = 960 IOPS	Your random test ~9,751 IOPS (CPU-limited test)
+Throughput	50 MB/s	50 × 4 = 200 MB/s	Your sequential test ~763 MB/s
+Capacity	64 GiB	64 × 4 = 256 GiB	D: shows 256 GiB
+
+### Why Your Results Are Even Higher Than 960 IOPS and 200 MB/s
+Because Azure has two limits:
+
+1. Disk limits
+
+– Each disk has its own performance.
+
+2. VM limits
+
+– The VM itself has a maximum IOPS + throughput budget it can push.
+
+You combined:
+
+4 disks × 240 IOPS = 960 theoretical disk IOPS
+
+VM limit (for your size) is way higher than 1,000 IOPS
+
+DiskSpd uses queue depth + multi-threading
+
+Data spreads across all disks evenly (good column count)
+
+👉 Result: you achieved far above the raw disk spec, because the VM had unused headroom.
+### Also: Sequential striping always boosts throughput massively
+Azure Premium SSDs perform better under:
+
+High queue depth (you used QD=4 / QD=8)
+
+Sequential write tests (64 KB blocks)
+
+Multi-threading
+
+That's why you got:
+
+~763 MB/s sequential write
+(Expected: 200 MB/s… but real: 3.8× higher)
+
+Azure disks have deeper throughput burst behavior and caching layers, and striping allows all disks to push in parallel.
+
+### So What Did You Actually Achieve?
+
+You essentially "cheated" Azure’s single-disk limits by using a legal, supported method:
+
+✔ Combined IOPS of all 4 disks
+✔ Combined throughput of all 4 disks
+✔ A single large fast volume (D:)
+✔ Better performance than a larger single-tier disk
+✔ Without paying for bigger Premium SSD tiers
+✔ Fully supported by Microsoft
+
+### Why Azure Allows This 
+
+Azure disks are designed to scale horizontally:
+
+Azure does not want you to buy one big expensive disk.
+They want you to scale out using multiple small disks.
+
+That’s why striping is supported in:
+
+SQL Server
+
+Veeam proxy servers
+
+Elasticsearch clusters
+
+Backup repositories
+
+TempDB volumes
+
+Cache servers
+
+Log volumes
+
+Microsoft documents the behavior:
+
+The IOPS and throughput of each disk add together when they are striped.
 
 > **Reference:** [Azure Premium Storage Performance](https://learn.microsoft.com/en-us/azure/virtual-machines/premium-storage-performance)
 
 ---
 
-## Overview
+## How should we acheive it?
 
 This **README** provides a complete, step-by-step guide to:
 
