@@ -36,14 +36,17 @@ Striping means:
 
 Think of it like:
 
-Instead of 1 worker carrying all the load, you now have 4 workers lifting at the same time.
+**Instead of 1 worker carrying all the load, you now have 4 workers lifting at the same time.**
 
 So:
 
-Item	Single Disk	4-Disk Stripe	What You See
-IOPS	240	240 × 4 = 960 IOPS	Your random test ~9,751 IOPS (CPU-limited test)
-Throughput	50 MB/s	50 × 4 = 200 MB/s	Your sequential test ~763 MB/s
-Capacity	64 GiB	64 × 4 = 256 GiB	D: shows 256 GiB
+Item	Single Disk	4-Disk Stripe	What You See 
+
+--IOPS	240, 240 × 4 = 960 IOPS, Your random test ~9,751 IOPS (CPU-limited test)
+
+--Throughput	50 MB/s	50 × 4 = 200 MB/s	Your sequential test ~763 MB/s
+
+--Capacity	64 GiB	64 × 4 = 256 GiB	D: shows 256 GiB
 
 ### Why Your Results Are Even Higher Than 960 IOPS and 200 MB/s
 Because Azure has two limits:
