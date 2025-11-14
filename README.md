@@ -10,13 +10,13 @@ When a high-scale VM is attached with several **Premium Storage persistent disks
 
 When you attach a single Premium SSD to an Azure VM, that disk has its own limits:
 
-**IOPS per disk**
-**Throughput per disk**
-**Size per disk**
+-IOPS per disk
+-Throughput per disk
+-Size per disk
 
 For example, each of your disks had:
-**240 IOPS max**
-**50 MB/s throughput max**
+-240 IOPS max
+-50 MB/s throughput max
 
 If you attach just one of those disks, your VM can only use that disk’s limits.
 
