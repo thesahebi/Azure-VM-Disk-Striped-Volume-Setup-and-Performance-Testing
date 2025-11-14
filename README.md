@@ -17,7 +17,9 @@ When you attach a single Premium SSD to an Azure VM, that disk has its own limit
 -Size per disk
 
 For example, each of your disks had:
+
 -240 IOPS max
+
 -50 MB/s throughput max
 
 If you attach just one of those disks, your VM can only use that disk’s limits.
