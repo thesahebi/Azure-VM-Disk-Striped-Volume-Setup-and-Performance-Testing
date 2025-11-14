@@ -96,13 +96,13 @@ New-Partition -DiskNumber $disk.Number -UseMaximumSize -DriveLetter D |
 Get-VirtualDisk | Format-Table FriendlyName, ResiliencySettingName, Size, NumberOfColumns
 Get-PhysicalDisk | Format-Table FriendlyName, OperationalStatus, CanPool, Size
 ```
-2 — Performance Testing (DiskSpd)
+## Performance Testing (DiskSpd)
 DiskSpd is Microsoft’s command-line I/O workload generator.
 Download: DiskSpd on GitHub
 Place DiskSpd.exe in a folder (e.g., C:\Tools) and run PowerShell as Admin from there.
 Use -c<size> to create test file if it doesn’t exist.
 
-2.1 Sequential Write (5 Minutes)
+### 2.1 Sequential Write (5 Minutes)
 ```powershell
 powershell.\diskspd.exe -b64K -d300 -o4 -t4 -w100 -c10G D:\load.dat
 ```
@@ -111,7 +111,7 @@ Measured Results (Sequential Write)
 
 MetricValueTotal Throughput~763 MB/sTotal IOPS~12,212Per-thread balance~190–192 MB/s (evenly distributed)
 
-2.2 Random 4KB Mixed (50% Read / 50% Write) – 5 Minutes
+### 2.2 Random 4KB Mixed (50% Read / 50% Write) – 5 Minutes
 ```powershell
 powershell.\diskspd.exe -b4K -d300 -o8 -t8 -w50 -r -c10G D:\load.dat
 ```
@@ -126,20 +126,19 @@ Cleanup
 ```powershell
 powershellRemove-Item D:\load.dat -Force
 ```
-3 — Interpretation & Key Notes
+## 3 — Interpretation & Key Notes
 ObservationExplanationAggregation4 disks × 240 IOPS = ~960 theoretical IOPS → measured 9,751 due to burst, caching, and test parametersSequential vs RandomSequential = bandwidth-bound (~763 MB/s)
 Random = IOPS-bound (~9.7K IOPS)Even I/O distributionConfirmed by per-thread balance → correct NumberOfColumns = 4No redundancySimple layout → 1 disk failure = data loss
 
-4 — Data Protection Options
-
+## 4 — Data Protection Options
 
 StrategyDescriptionCapacityFault TolerancePerformanceStripe + Backups (Current)Daily Veeam backups100%None (restore from backup)MaxMirrored Stripe (RAID-10)Two-way mirror in Storage Spaces50%1 disk failureHighParityStorage Spaces parity~75%1–2 failuresSlower writesSnapshots + BackupsAzure or ReFS snapshots + Veeam100%Logical recoveryFast restore
 
 5 — Recommendations
 
-Performance Priority?
+**Performance Priority?**
 → Keep Simple stripe + daily Veeam backups
-High Availability Required?
+**High Availability Required?**
 → Use two-way mirror instead of Simple
 Test Veeam Restores regularly (RPO/RTO validation)
 Monitor in Azure Portal:
@@ -155,49 +154,28 @@ Vary -o (outstanding I/O) and -t (threads)
 
 6 — Quick Reference Commands
 Create Stripe (PowerShell)
+```powershell
 powershellNew-StoragePool -FriendlyName "StripePool" `
                 -StorageSubsystemFriendlyName "Storage Spaces*" `
                 -PhysicalDisks (Get-PhysicalDisk -CanPool $True)
-
+```
+```powershell
 New-VirtualDisk -StoragePoolFriendlyName "StripePool" `
                 -FriendlyName "Disk-Strip-Demo" `
                 -Size 256GB `
                 -ResiliencySettingName Simple `
                 -NumberOfColumns 4
 (Initialize/format: see full script above)
-
+```
 DiskSpd Tests
 powershell# Sequential Write (5 min)
 .\diskspd.exe -b64K -d300 -o4 -t4 -w100 -c10G D:\load.dat
 
 # Random 4K Mixed (5 min)
+```powershell
 .\diskspd.exe -b4K -d300 -o8 -t8 -w50 -r -c10G D:\load.dat
-
+```
 7 — Summary
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ItemDetailsConfiguration4 × Premium SSD LRS (64 GiB), striped → ~256 GiB D:Performance~763 MB/s sequential write
 ~9,751 IOPS (4KB random mixed)Data ProtectionDaily Veeam backups (current)
