@@ -249,23 +249,7 @@ powershellRemove-Item D:\load.dat -Force
 - **No Redundancy**  
   · Simple layout → 1 disk failure = data loss
 
-### 4 Observations from 4-Disk Striped Volume Testing
-
-- **Aggregation**
-  · 4 disks × 240 IOPS = ~960 theoretical IOPS  
-  · Measured 9,751 IOPS due to burst, caching, and multi-threaded test parameters
-
-- **Sequential vs Random**
-  · Sequential = bandwidth-bound (~763 MB/s)  
-  · Random = IOPS-bound (~9.7K IOPS)
-
-- **Even I/O Distribution**
-  · Confirmed by per-thread balance → correct NumberOfColumns = 4
-
-- **No Redundancy**
-  · Simple layout → 1 disk failure = data loss
-
-5 — Recommendations
+### 5 — Recommendations
 
 **Performance Priority?**
 → Keep Simple stripe + daily Veeam backups
