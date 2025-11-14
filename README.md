@@ -83,14 +83,6 @@ New-VirtualDisk -StoragePoolFriendlyName "StripePool" `
                 -ResiliencySettingName Simple `
                 -NumberOfColumns 4
 ```
-# 4. Initialize and format the virtual disk
-```powershell
-$vd = Get-VirtualDisk -FriendlyName "Disk-Strip-Demo"
-$disk = $vd | Get-Disk
-Initialize-Disk -Number $disk.Number -PartitionStyle GPT
-New-Partition -DiskNumber $disk.Number -UseMaximumSize -DriveLetter D | 
-    Format-Volume -FileSystem NTFS -NewFileSystemLabel "D_Stripe" -Confirm:$false
-```
 # 5. Verify configuration
 ```powershell
 Get-VirtualDisk | Format-Table FriendlyName, ResiliencySettingName, Size, NumberOfColumns
