@@ -291,13 +291,20 @@ powershell# Sequential Write (5 min)
 .\diskspd.exe -b4K -d300 -o8 -t8 -w50 -r -c10G D:\load.dat
 ```
 ### 6- Summary
+## Summary & Recommendations
 
-ItemDetailsConfiguration4 × Premium SSD LRS (64 GiB), 
--- striped → ~256 GiB D:
--- Performance~763 MB/s sequential write
--- ~9,751 IOPS (4KB random mixed)Data ProtectionDaily Veeam backups (current)
-→ Consider mirrored stripe for live redundancyRecommendationStripe for speed + backups for recovery
-OR Mirror for fault tolerance. id you dont have a backup application
+This setup demonstrates how to maximize **IOPS and throughput** on Azure using multiple Premium SSDs in a striped configuration.
+
+| Item               | Details |
+|-------------------|---------|
+| **Configuration** | 4 × Premium SSD LRS (64 GiB each) → striped → 256 GiB D: volume |
+| **Performance**   | Sequential Write: ~763 MB/s<br>Random 4 KB Mixed Read/Write: ~9,751 IOPS |
+| **Data Protection** | Daily Veeam backups (current). For live fault tolerance, consider mirrored stripe (RAID 10) |
+| **Recommendation** | - Use striping for maximum performance when backups are in place<br>- Use mirrored stripe for fault tolerance if backup solutions are not available<br>- Monitor disk health and Azure VM IOPS/throughput metrics regularly<br>- Test with various block sizes (4 KB, 8 KB, 16 KB) to simulate real-world workloads |
+| **Key Notes** | - Striping aggregates disk IOPS and throughput, often exceeding single-disk limits<br>- Simple layout has no redundancy: 1 disk failure = total data loss<br>- Sequential workloads benefit most from striping, random workloads benefit from higher IOPS and queue depth |
+
+> **Insight:** This approach effectively "cheats" Azure disk limits legally by combining multiple disks, providing higher throughput and IOPS than a single disk of the same size while staying fully supported.
+
 
 ## References
 
