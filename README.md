@@ -140,7 +140,6 @@ This **README** provides a complete, step-by-step guide to:
 1. Create a **high-performance 4-disk striped volume (D:)** on a **Windows Azure VM** using **Storage Spaces**
 2. Test performance using **DiskSpd**
 3. Summarize measured results and best practices
-4. IOPS cheatcode.
 
 **Example configuration:**  
 **4 × Premium SSD LRS, 64 GiB each**
@@ -285,12 +284,14 @@ powershell# Sequential Write (5 min)
 ```
 7 — Summary
 
-ItemDetailsConfiguration4 × Premium SSD LRS (64 GiB), striped → ~256 GiB D:Performance~763 MB/s sequential write
-~9,751 IOPS (4KB random mixed)Data ProtectionDaily Veeam backups (current)
+ItemDetailsConfiguration4 × Premium SSD LRS (64 GiB), 
+-- striped → ~256 GiB D:
+-- Performance~763 MB/s sequential write
+-- ~9,751 IOPS (4KB random mixed)Data ProtectionDaily Veeam backups (current)
 → Consider mirrored stripe for live redundancyRecommendationStripe for speed + backups for recovery
-OR Mirror for fault tolerance
+OR Mirror for fault tolerance. id you dont have a backup application
 
-References
+## References
 
 Azure Premium Storage Performance
 DiskSpd Documentation
