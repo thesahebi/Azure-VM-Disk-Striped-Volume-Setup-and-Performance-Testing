@@ -237,9 +237,21 @@ powershellRemove-Item D:\load.dat -Force
 ObservationExplanationAggregation4 disks × 240 IOPS = ~960 theoretical IOPS → measured 9,751 due to burst, caching, and test parametersSequential vs RandomSequential = bandwidth-bound (~763 MB/s)
 Random = IOPS-bound (~9.7K IOPS)Even I/O distributionConfirmed by per-thread balance → correct NumberOfColumns = 4No redundancySimple layout → 1 disk failure = data loss
 
-## 4 — Data Protection Options
+### 4 Observations from 4-Disk Striped Volume Testing
 
-StrategyDescriptionCapacityFault TolerancePerformanceStripe + Backups (Current)Daily Veeam backups100%None (restore from backup)MaxMirrored Stripe (RAID-10)Two-way mirror in Storage Spaces50%1 disk failureHighParityStorage Spaces parity~75%1–2 failuresSlower writesSnapshots + BackupsAzure or ReFS snapshots + Veeam100%Logical recoveryFast restore
+- **Aggregation**
+  · 4 disks × 240 IOPS = ~960 theoretical IOPS  
+  · Measured 9,751 IOPS due to burst, caching, and multi-threaded test parameters
+
+- **Sequential vs Random**
+  · Sequential = bandwidth-bound (~763 MB/s)  
+  · Random = IOPS-bound (~9.7K IOPS)
+
+- **Even I/O Distribution**
+  · Confirmed by per-thread balance → correct NumberOfColumns = 4
+
+- **No Redundancy**
+  · Simple layout → 1 disk failure = data loss
 
 5 — Recommendations
 
