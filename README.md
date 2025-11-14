@@ -98,10 +98,15 @@ Use -c<size> to create test file if it doesn’t exist.
 ```powershell
 powershell.\diskspd.exe -b64K -d300 -o4 -t4 -w100 -c10G D:\load.dat
 ```
+```powershel
 ParameterValueBlock size64KDuration300s (5 min)Outstanding I/O per thread4Threads4Workload100% write, sequential
 Measured Results (Sequential Write)
-
-MetricValueTotal Throughput~763 MB/sTotal IOPS~12,212Per-thread balance~190–192 MB/s (evenly distributed)
+```
+### Result:
+#### MetricValueTotal 
+**Throughput** ~763 MB/sTotal 
+**IOPS**~12,212Per-thread 
+**balance** ~190–192 MB/s (evenly distributed)
 
 ### 2.2 Random 4KB Mixed (50% Read / 50% Write) – 5 Minutes
 ```powershell
